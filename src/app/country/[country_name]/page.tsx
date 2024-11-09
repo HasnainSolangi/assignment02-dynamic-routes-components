@@ -1,6 +1,6 @@
-// app/country/[country_name]/page.tsx
-import { Metadata } from "next";
-import CountryCard from "@/app/components/CountryCard"; // Adjust the import path as needed
+// src/app/country/[country_name]/page.tsx
+
+import CountryCard from "../../components/CountryCard";
 
 interface Country {
   name: string;
@@ -17,47 +17,35 @@ const countryDetails: { [key: string]: Country } = {
   malaysia: { name: "Malaysia", population: 34000000, capital: "Kuala Lumpur" },
   morocco: { name: "Morocco", population: 37000000, capital: "Rabat" },
   pakistan: { name: "Pakistan", population: 240000000, capital: "Islamabad" },
-  saudiarabia: {name: "Saudi Arabia", population: 36000000, capital: "Riyadh",},
+  saudiarabia: { name: "Saudi Arabia", population: 36000000, capital: "Riyadh" },
   turkey: { name: "Turkey", population: 85000000, capital: "Ankara" },
 };
 
-// Metadata generation
-export async function generateMetadata({
-  params,
-}: {
-  params: { country_name: string };
-}): Promise<Metadata> {
-  const countryName = (await params).country_name.toLowerCase();
-  const country = countryDetails[countryName];
-
-  if (!country) {
-    return { title: "Country not found" };
-  }
-  return { title: `${country.name} - Details` };
+// Define the expected props for the dynamic page, with params as a Promise
+interface CountryPageProps {
+  params: Promise<{ country_name: string }>;
 }
 
-// Main page component
-const CountryPage = async ({
-  params,
-}: {
-  params: { country_name: string };
-}) => {
-  const countryName = (await params).country_name.toLowerCase();
-  const country = countryDetails[countryName];
+export default async function CountryPage({ params }: CountryPageProps): Promise<JSX.Element> {
+  // Await the params object before accessing its properties
+  const { country_name } = await params;
+
+  // Fetch the country data from the countryDetails object
+  const country = countryDetails[country_name.toLowerCase()] || null;
 
   return (
     <div className="p-4">
       {country ? (
+        // If country exists, display the CountryCard component with country details
         <CountryCard
           name={country.name}
           population={country.population}
           capital={country.capital}
         />
       ) : (
-        <p>Country not found.</p>
+        // If country not found, display a message
+        <p className="text-red-500">Country not found.</p>
       )}
     </div>
   );
-};
-
-export default CountryPage;
+}
